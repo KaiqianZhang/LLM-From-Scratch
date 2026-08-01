@@ -1,0 +1,86 @@
+# LLM-From-Scratch — environment requirements
+#
+# Target environment: conda env `llm-venv` (Python 3.11.6) on Princeton Della
+#   /scratch/gpfs/AKEY/kaiqianz/llm-venv
+# Verified on: NVIDIA A100-PCIE-40GB, CUDA driver 13.3 (compute capability 8.0)
+# Last verified: 2026-08-01
+#
+# ---------------------------------------------------------------------------
+# INSTALL
+#
+#   pip install -r requirements.txt
+#
+# The PyTorch line below needs the PyTorch CUDA 12.8 index, which is declared
+# via --extra-index-url. Installing without it will fail, because the "+cu128"
+# builds do not exist on the public Python Package Index (PyPI).
+#
+# To rebuild the environment from scratch:
+#   conda create -p /scratch/gpfs/AKEY/kaiqianz/llm-venv python=3.11 -y
+#   conda activate /scratch/gpfs/AKEY/kaiqianz/llm-venv
+#   pip install -r requirements.txt
+#
+# NOTE ON QUOTA (Della /home is capped at 50 GB): keep package and model
+# caches off /home, or installs will fail partway through. Set these first:
+#   export PIP_CACHE_DIR=/scratch/gpfs/AKEY/kaiqianz/.cache/pip
+#   export HF_HOME=/scratch/gpfs/AKEY/kaiqianz/.cache/huggingface
+#   export CONDA_PKGS_DIRS=/scratch/gpfs/AKEY/kaiqianz/.conda_pkgs
+# ---------------------------------------------------------------------------
+
+--extra-index-url https://download.pytorch.org/whl/cu128
+
+# --- Core: PyTorch with CUDA 12.8 -------------------------------------------
+# These three MUST stay version-matched. torchvision 0.22.0 and torchaudio
+# 2.7.0 are the builds that pair with torch 2.7.0; pip will otherwise resolve
+# torchaudio to a much newer release that silently requires a different torch.
+torch==2.7.0+cu128
+torchvision==0.22.0+cu128
+torchaudio==2.7.0+cu128
+
+# --- Hugging Face model/data stack ------------------------------------------
+transformers==5.14.1
+tokenizers==0.22.2
+datasets==5.0.1
+accelerate==1.14.0
+safetensors==0.8.0
+huggingface-hub==1.26.0
+
+# --- Post-training: supervised fine-tuning, preference optimization, RLHF ----
+trl==1.9.2
+peft==0.20.0
+bitsandbytes==0.50.0
+
+# --- Tokenization and tensor utilities --------------------------------------
+sentencepiece==0.2.1
+tiktoken==0.13.0
+einops==0.8.2
+
+# --- Experiment tracking ----------------------------------------------------
+wandb==0.28.1
+tensorboard==2.20.0
+
+# --- Analysis and plotting --------------------------------------------------
+numpy==2.4.6
+pandas==3.0.5
+scikit-learn==1.9.0
+matplotlib==3.11.1
+seaborn==0.13.2
+
+# --- Notebook environment ---------------------------------------------------
+jupyterlab==4.6.2
+ipykernel==7.3.0
+ipywidgets==8.1.8
+
+# --- Misc utilities ---------------------------------------------------------
+tqdm==4.70.0
+rich==15.0.0
+pyyaml==6.0.3
+
+# ---------------------------------------------------------------------------
+# DELIBERATELY NOT INCLUDED
+#
+#   flash-attn   compiles from source (long build, frequently fails); install
+#                separately only if a model actually requires it.
+#   deepspeed    compiles CUDA extensions; add only when doing multi-node work.
+#   vllm         pins its own torch version and WILL break the 2.7.0 pin above.
+#                If you need it, use a separate environment.
+# ---------------------------------------------------------------------------
